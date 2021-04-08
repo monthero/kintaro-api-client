@@ -1,0 +1,33 @@
+[tool.black]
+line-length = 80
+target-version = ['py38']
+include-trailing-comma = true
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | node_modules
+)/
+'''
+
+[tool.isort]
+line_length = 80
+force_grid_wrap = 0
+combine_as_imports = true
+skip = []
+multi_line_output = 3
+include_trailing_comma = true
+lines_after_imports = 2
+known_first_party = []
+known_third_party = [
+
+]

@@ -1,0 +1,12 @@
+[flake8]
+# B = bugbear
+# E = pycodestyle errors
+# F = flake8 pyflakes
+# W = pycodestyle warnings
+# B9 = bugbear opinions
+# ISC = implicit-str-concat
+ignore = E203, E266, W503, F403, F405
+max-line-length = 80
+max-complexity = 36
+select = B,C,E,F,W,T4,B9
+exclude = .git,__pycache__,__init__.py,.mypy_cache,.pytest_cache
