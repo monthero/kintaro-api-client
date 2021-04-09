@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from .base import BaseKintaroEntity
+from kintaro_client.models.base import BaseKintaroEntity
 
 
 class KintaroWorkspace(BaseKintaroEntity):

@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from .base import BaseKintaroEntity
+from kintaro_client.models.base import BaseKintaroEntity
 
 
 class KintaroRepository(BaseKintaroEntity):
@@ -15,14 +15,12 @@ class KintaroRepository(BaseKintaroEntity):
     schema_ids: List[str] = []
 
     def __init__(self, initial_data: Optional[Dict] = None):
-        data: Dict = {}
-        for key in initial_data:
-            if not hasattr(self, key):
-                continue
-
-        super().__init__(initial_data=data)
-        if hasattr(self, "workspace_id"):
-            delattr(self, "workspace_id")
+        initial_data: Dict = {
+            key: value
+            for key, value in initial_data.items()
+            if hasattr(self, key)
+        }
+        super().__init__(initial_data=initial_data)
 
     def __repr__(self) -> str:
         return f"KintaroRepository<{self.repo_id}>"

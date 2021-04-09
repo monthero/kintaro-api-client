@@ -1,5 +1,12 @@
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-x -s -v"
+testpaths = [
+    "tests",
+]
+
 [tool.black]
-line-length = 80
+line-length = 79
 target-version = ['py38']
 include-trailing-comma = true
 include = '\.pyi?$'
@@ -20,14 +27,25 @@ exclude = '''
 '''
 
 [tool.isort]
-line_length = 80
+line_length = 79
 force_grid_wrap = 0
 combine_as_imports = true
 skip = []
 multi_line_output = 3
 include_trailing_comma = true
 lines_after_imports = 2
-known_first_party = []
-known_third_party = [
-
+known_first_party = [
+    'kintaro_client'
 ]
+known_third_party = [
+    'requests',
+    'PIL',
+    'magic',
+    'joblib',
+    'google',
+    'googleapiclient',
+]
+
+[build-system]
+requires = ["setuptools>=41.0", "setuptools-scm", "wheel"]
+build-backend = "setuptools.build_meta"

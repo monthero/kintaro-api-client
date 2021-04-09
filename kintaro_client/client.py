@@ -30,6 +30,7 @@ class KintaroClient:
         self,
         repo_id: str,
         workspace_id: str,
+        use_backend_url: bool = False,
         **kwargs,
     ):
         """
@@ -50,7 +51,7 @@ class KintaroClient:
 
         self.repo_id = repo_id
         self.workspace_id = workspace_id
-        service = create_kintaro_service()
+        service = create_kintaro_service(use_backend_url=use_backend_url)
 
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs.get(kwarg))
@@ -67,21 +68,14 @@ class KintaroClient:
                 self,
                 attr,
                 cls(
-                    service=service,
-                    repo_id=self.repo_id,
-                    workspace_id=self.workspace_id,
+                    **dict(
+                        service=service,
+                        repo_id=self.repo_id,
+                        workspace_id=self.workspace_id,
+                        use_backend_url=use_backend_url,
+                        **kwargs,
+                    )
                 ),
             )
 
         logger.info("-------- Kintaro client created -------")
-
-
-if __name__ == "__main__":
-    client = KintaroClient(
-        repo_id="gweb-games-diagnostic",
-        workspace_id="test-vasco-ws",
-    )
-
-    schema = client.schemas.get_schema(schema_id="Question")
-    print(schema)
-    print(schema.to_json())

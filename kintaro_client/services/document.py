@@ -18,16 +18,15 @@ from kintaro_client.models import (
     KintaroSchema,
     KintaroSchemaField,
 )
+from kintaro_client.services.base import KintaroBaseService
+from kintaro_client.services.collection import KintaroCollectionService
+from kintaro_client.services.resource import KintaroResourceService
+from kintaro_client.services.schema import KintaroSchemaService
 from kintaro_client.utils import (
     ServiceError,
     api_request,
     prepare_google_api_error_response,
 )
-
-from .base import KintaroBaseService
-from .collection import KintaroCollectionService
-from .resource import KintaroResourceService
-from .schema import KintaroSchemaService
 
 
 NUM_CORES = cpu_count()
@@ -232,7 +231,9 @@ class KintaroDocumentService(KintaroBaseService):
         ).execute()
 
         if include_document_versions:
-            versions: List[KintaroDocumentVersion] = self.get_document_versions(
+            versions: List[
+                KintaroDocumentVersion
+            ] = self.get_document_versions(
                 repo_id=repo_id or self.repo_id,
                 workspace_id=workspace_id or self.workspace_id,
                 collection_id=collection_id,
@@ -259,28 +260,33 @@ class KintaroDocumentService(KintaroBaseService):
         error_msg = None
         current_field_value: Any = None
         try:
-            current_field_value = (
-                self.service.getFieldsByDescriptor(
-                    body=dict(
-                        field_headers=[
-                            dict(
-                                repo_id=repo_id or self.repo_id,
-                                project_id=workspace_id or self.workspace_id,
-                                collection_id=collection_id,
-                                document_id=document_id,
-                                field_descriptor=field_name,
-                                locale=locale,
+            current_field_value = next(
+                iter(
+                    (
+                        self.service.getFieldsByDescriptor(
+                            body=dict(
+                                field_headers=[
+                                    dict(
+                                        repo_id=repo_id or self.repo_id,
+                                        project_id=workspace_id
+                                        or self.workspace_id,
+                                        collection_id=collection_id,
+                                        document_id=document_id,
+                                        field_descriptor=field_name,
+                                        locale=locale,
+                                    )
+                                ]
                             )
-                        ]
+                        )
+                        .execute()
+                        .get("field_values", [])
                     )
-                )
-                .execute()
-                .get("field_values", [])[0]
-                .get("value")
-            )
+                ),
+                {},
+            ).get("value")
         except GoogleApiHttpError as e:
             error = prepare_google_api_error_response(error=e.content)
-            error_msg = error.get("errors", [])[0].get("message")
+            error_msg = next(iter(error.get("errors", [])), {}).get("message")
 
         if current_field_value and not error_msg:
             return current_field_value
@@ -291,7 +297,7 @@ class KintaroDocumentService(KintaroBaseService):
                 current_values: List = []
                 while True:
                     try:
-                        current_values.append(
+                        values = iter(
                             self.service.documents()
                             .getFieldsByDescriptor(
                                 body=dict(
@@ -310,11 +316,12 @@ class KintaroDocumentService(KintaroBaseService):
                                 )
                             )
                             .execute()
-                            .get("field_values", [])[0]
-                            .get("value")
+                            .get("field_values", [])
                         )
+
+                        current_values.append(next(values, {}).get("value"))
                         i += 1
-                    except Exception:
+                    except (AttributeError, ValueError, IndexError, TypeError):
                         break
                 return current_values
 
@@ -412,7 +419,9 @@ class KintaroDocumentService(KintaroBaseService):
                 workspace_id=workspace_id or self.workspace_id,
                 locale=locale,
                 field_name=field_name,
-                field_value=dict(value=field_values[locale], root_md5=root_md5),
+                field_value=dict(
+                    value=field_values[locale], root_md5=root_md5
+                ),
             )
 
     @api_request
@@ -631,10 +640,12 @@ class KintaroDocumentService(KintaroBaseService):
                         schema_info=schema.schema_fields,
                         locale=locale,
                         root_md5_info=root_md5_info,
-                        field_name_structure=self.get_structured_content_values(
-                            doc_content=content[locale],
-                            schema_info=schema.schema_fields,
-                            md5_results=False,
+                        field_name_structure=(
+                            self.get_structured_content_values(
+                                doc_content=content[locale],
+                                schema_info=schema.schema_fields,
+                                md5_results=False,
+                            )
                         ),
                     ),
                 )
@@ -695,6 +706,7 @@ class KintaroDocumentService(KintaroBaseService):
             for request in request_bodies
         )
 
+    # TODO: simplify and devide this method
     def convert_document_content_to_kintaro_format(
         self,
         collection_id: str,
@@ -705,11 +717,10 @@ class KintaroDocumentService(KintaroBaseService):
         locale: str = "root",
         repo_id: Optional[str] = None,
         workspace_id: Optional[str] = None,
-    ):
+    ) -> List[Dict]:
         """
         Converts the request body to the format that is accepted by kintaro
         """
-
         is_update = isinstance(root_md5_info, dict) and isinstance(
             field_name_structure, dict
         )
@@ -823,7 +834,9 @@ class KintaroDocumentService(KintaroBaseService):
                         workspace_id=workspace_id or self.workspace_id,
                         collection_id=collection_id,
                         content=item,
-                        schema_info=schema_info.get(field_name).schema_fields,
+                        schema_info=schema_info.get(
+                            field_name
+                        ).schema_fields,  # NOQA
                         locale=locale,
                         root_md5_info=root_md5_info,
                         field_name_structure=field_name_structure,
@@ -847,7 +860,8 @@ class KintaroDocumentService(KintaroBaseService):
 
                 for entry in field_value:
                     if entry is None or any(
-                        key not in entry for key in ["collection_id", "content"]
+                        key not in entry
+                        for key in ["collection_id", "content"]
                     ):
                         continue
 
@@ -963,7 +977,9 @@ class KintaroDocumentService(KintaroBaseService):
                             )
                             if val == entry:
                                 if key in root_md5_info:
-                                    field_value["root_md5"] = root_md5_info[key]
+                                    field_value["root_md5"] = root_md5_info[
+                                        key
+                                    ]
                                 break
                     prepared_field_value.append(field_value)
 
@@ -982,7 +998,7 @@ class KintaroDocumentService(KintaroBaseService):
         md5_results: bool = False,
     ) -> Dict:
         """Recursively builds a flattened version of the content dictionary
-        to allow updating non-root loclaes's contents. Only grabs translatable
+        to allow updating non-root locales's contents. Only grabs translatable
         or locale-varied fields. For example if the original content is:
         {
             "field_one": "string",  # <---- translatable

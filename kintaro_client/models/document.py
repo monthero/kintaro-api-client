@@ -1,6 +1,11 @@
+import logging
+from json import JSONDecodeError, loads as json_loads
 from typing import Dict, List, Optional
 
-from .base import BaseKintaroEntity
+from kintaro_client.models.base import BaseKintaroEntity
+
+
+logger = logging.getLogger(__name__)
 
 
 class KintaroDocumentVersion(BaseKintaroEntity):
@@ -25,7 +30,16 @@ class KintaroDocument(BaseKintaroEntity):
         if not initial_data:
             return
 
-        initial_data["content"] = initial_data.pop("content_json", {})
+        try:
+            document_content = json_loads(
+                initial_data.pop("content_json", "{}")
+            )
+        except (ValueError, JSONDecodeError) as e:
+            logger.error(e)
+            document_content = "ERROR READING JSON"
+
+        initial_data["content"] = document_content
+
         for field in [
             "translation_readiness",
             "never_published",

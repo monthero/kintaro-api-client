@@ -1,9 +1,8 @@
 from typing import List, Optional, Union
 
 from kintaro_client.models import KintaroRepository
+from kintaro_client.services.base import KintaroBaseService
 from kintaro_client.utils import ServiceError, api_request
-
-from .base import KintaroBaseService
 
 
 class KintaroRepositoryService(KintaroBaseService):

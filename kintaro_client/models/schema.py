@@ -2,7 +2,7 @@ from collections import OrderedDict
 from re import Match, Pattern, compile as re_compile
 from typing import Dict, List, Optional
 
-from .base import BaseKintaroEntity
+from kintaro_client.models.base import BaseKintaroEntity
 
 
 CHARACTER_LIMITS_PATTERN: Pattern = re_compile(r"^\^\.{(\d*,\d*)}\$$")
@@ -46,8 +46,13 @@ class KintaroSchemaField(BaseKintaroEntity):
                         for field in initial_data.get("schema_fields", [])
                     ],
                 )
-
-            if (
+            elif key == "default":
+                field_values: List = initial_data.get("default", {}).get(
+                    "field_values", []
+                )
+                if field_values:
+                    value = next(iter(field_values), {}).get("value")
+            elif (
                 key in ["validation_rule", "validation_rule_message"]
                 and value == ""
             ):
@@ -186,7 +191,6 @@ class KintaroSchema(BaseKintaroEntity):
         obj = OrderedDict(
             [
                 ("name", original_obj.get("name")),
-                ("collection_id", original_obj.get("collection_id")),
                 ("schema_fields", original_obj.get("schema_fields")),
             ]
         )

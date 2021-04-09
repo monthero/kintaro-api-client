@@ -1,9 +1,8 @@
 from typing import Dict, List, Optional, Union
 
 from kintaro_client.models import KintaroSchema
+from kintaro_client.services.base import KintaroBaseService
 from kintaro_client.utils import ServiceError, api_request
-
-from .base import KintaroBaseService
 
 
 class KintaroSchemaService(KintaroBaseService):
@@ -46,23 +45,46 @@ class KintaroSchemaService(KintaroBaseService):
             )
         )
 
-    # @api_request
+    @api_request
     def create_schema(
         self,
-        name: str,
+        schema_id: str,
         fields: List[Dict],
         repo_id: Optional[str] = None,
-    ):
-        # TODO: logic for create_schema
-        raise NotImplementedError()
+    ) -> Union[ServiceError, KintaroSchema]:
+        return self.service.createSchema(
+            body=dict(
+                repo_id=repo_id or self.repo_id,
+                name=schema_id,
+                schema_fields=fields,
+            )
+        ).execute()
+
+    @api_request
+    def update_schema(
+        self,
+        schema_id: str,
+        fields: List[Dict],
+        new_schema_id: Optional[str] = None,
+        repo_id: Optional[str] = None,
+    ) -> Union[ServiceError, KintaroSchema]:
+        request_body: Dict = dict(
+            repo_id=repo_id or self.repo_id,
+            name=schema_id,
+            schema_fields=fields,
+        )
+        if new_schema_id and new_schema_id != schema_id:
+            request_body["updated_name"] = new_schema_id
+
+        return self.service.updateSchema(body=request_body).execute()
 
     @api_request
     def delete_schema(
-        self, name: str, repo_id: Optional[str] = None
+        self, schema_id: str, repo_id: Optional[str] = None
     ) -> Optional[ServiceError]:
         return self.service.deleteSchema(
             body=dict(
                 repo_id=repo_id or self.repo_id,
-                name=name,
+                name=schema_id,
             )
         ).execute()

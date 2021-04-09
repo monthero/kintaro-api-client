@@ -1,0 +1,5 @@
+google-api-python-client==2.1.0
+joblib==1.0.1
+Pillow==8.2.0
+python-magic==0.4.22
+requests==2.25.1

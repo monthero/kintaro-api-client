@@ -10,9 +10,8 @@ from requests import get as http_get
 
 from kintaro_client.constants import KintaroResourceType
 from kintaro_client.models import KintaroResource
+from kintaro_client.services.base import KintaroBaseService
 from kintaro_client.utils import ServiceError, api_request
-
-from .base import KintaroBaseService
 
 
 class KintaroResourceService(KintaroBaseService):

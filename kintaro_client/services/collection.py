@@ -1,9 +1,8 @@
 from typing import Dict, List, Optional, Union
 
 from kintaro_client.models import KintaroCollection
+from kintaro_client.services.base import KintaroBaseService
 from kintaro_client.utils import ServiceError, api_request
-
-from .base import KintaroBaseService
 
 
 class KintaroCollectionService(KintaroBaseService):
@@ -53,7 +52,7 @@ class KintaroCollectionService(KintaroBaseService):
         repo_id: Optional[str] = None,
         include_schema: bool = False,
         include_document_count: bool = False,
-    ) -> Union[KintaroCollection, Dict]:
+    ) -> Union[ServiceError, KintaroCollection]:
         return KintaroCollection(
             initial_data=(
                 self.service.getCollection(
@@ -65,6 +64,34 @@ class KintaroCollectionService(KintaroBaseService):
                     )
                 ).execute()
             )
+        )
+
+    @api_request
+    def create_collection(
+        self,
+        collection_id: str,
+        schema_id: str,
+        repo_id: Optional[str] = None,
+        description: Optional[str] = None,
+        folder: Optional[str] = None,
+    ) -> Union[ServiceError, KintaroCollection]:
+        request_body: Dict[str, str] = dict(
+            repo_id=repo_id or self.repo_id,
+            schema_id=schema_id,
+            collection_id=collection_id,
+        )
+
+        for field_name, field_value in [
+            ("description", description),
+            ("folder", folder),
+        ]:
+            if not field_value:
+                continue
+
+            request_body[field_name] = field_value
+
+        return KintaroCollection(
+            initial_data=(self.service.createCollection(body=request_body))
         )
 
     @api_request
@@ -100,34 +127,6 @@ class KintaroCollectionService(KintaroBaseService):
             initial_data=(
                 self.service.updateCollection(body=request_body).execute()
             )
-        )
-
-    @api_request
-    def create_collection(
-        self,
-        collection_id: str,
-        schema_id: str,
-        repo_id: Optional[str] = None,
-        description: Optional[str] = None,
-        folder: Optional[str] = None,
-    ) -> Union[ServiceError, KintaroCollection]:
-        request_body: Dict[str, str] = dict(
-            repo_id=repo_id or self.repo_id,
-            schema_id=schema_id,
-            collection_id=collection_id,
-        )
-
-        for field_name, field_value in [
-            ("description", description),
-            ("folder", folder),
-        ]:
-            if not field_value:
-                continue
-
-            request_body[field_name] = field_value
-
-        return KintaroCollection(
-            initial_data=(self.service.createCollection(body=request_body))
         )
 
     @api_request

@@ -1,7 +1,7 @@
 from typing import Dict, Optional
 
-from .base import BaseKintaroEntity
-from .schema import KintaroSchema
+from kintaro_client.models.base import BaseKintaroEntity
+from kintaro_client.models.schema import KintaroSchema
 
 
 class KintaroCollection(BaseKintaroEntity):

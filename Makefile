@@ -6,4 +6,3 @@ lint:  # checks project for linting problems
 lint-fix:  # fixes linting problems in project
 	isort .
 	black .
-	flake8

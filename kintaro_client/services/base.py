@@ -14,7 +14,10 @@ class KintaroBaseService:
             if param not in kwargs:
                 raise KintaroServiceInitError(f"Missing {param} param")
 
-            if "service" not in kwargs or not kwargs.get("service"):
-                kwargs["service"] = create_kintaro_service()
+        if "service" not in kwargs or not kwargs.get("service"):
+            kwargs["service"] = create_kintaro_service(
+                use_backend_url=kwargs.get("use_backend_url", False),
+            )
 
-            setattr(self, param, kwargs[param])
+        for key in kwargs:
+            setattr(self, key, kwargs[key])

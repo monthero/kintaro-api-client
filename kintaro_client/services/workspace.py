@@ -1,9 +1,8 @@
 from typing import Dict, List, Optional, Union
 
 from kintaro_client.models import KintaroWorkspace
+from kintaro_client.services.base import KintaroBaseService
 from kintaro_client.utils import ServiceError, api_request
-
-from .base import KintaroBaseService
 
 
 class KintaroWorkspaceService(KintaroBaseService):
@@ -71,7 +70,9 @@ class KintaroWorkspaceService(KintaroBaseService):
 
         ws["workspace_id"] = ws.pop("project_id")
         try:
-            ws["repo_id"] = ws.pop("repo_ids", [])[0] or self.repo_id
+            ws["repo_id"] = (
+                next(iter(ws.pop("repo_ids", [])), None) or self.repo_id
+            )
         except (ValueError, IndexError, TypeError):
             ws["repo_id"] = self.repo_id
 
@@ -90,14 +91,16 @@ class KintaroWorkspaceService(KintaroBaseService):
         self,
         repo_id: Optional[str] = None,
         workspace_id: Optional[str] = None,
+        locales: Optional[List[str]] = None,
         **kwargs,
     ) -> Union[ServiceError, KintaroWorkspace]:
-        locales: List[str] = sorted(list(set(kwargs.get("locales", []))))
+        if not locales:
+            locales = []
         return self.service.createProject(
             body=dict(
                 repo_ids=[repo_id or self.repo_id],
                 project_id=workspace_id or self.workspace_id,
-                locales=locales,
+                locales=sorted(list(locales)),
                 **kwargs,
             )
         ).execute()
@@ -107,14 +110,16 @@ class KintaroWorkspaceService(KintaroBaseService):
         self,
         repo_id: Optional[str] = None,
         workspace_id: Optional[str] = None,
+        locales: Optional[List[str]] = None,
         **kwargs,
     ) -> Union[ServiceError, KintaroWorkspace]:
-        locales: List[str] = sorted(list(set(kwargs.get("locales", []))))
-        return self.service.updateProject(
-            body=dict(
-                repo_ids=[repo_id or self.repo_id],
-                project_id=workspace_id or self.workspace_id,
-                locales=locales,
-                **kwargs,
-            )
-        ).execute()
+        request_body: Dict = dict(
+            repo_ids=[repo_id or self.repo_id],
+            project_id=workspace_id or self.workspace_id,
+            **kwargs,
+        )
+
+        if locales:
+            request_body["locales"] = locales
+
+        return self.service.updateProject(body=request_body).execute()

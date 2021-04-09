@@ -1,37 +1,38 @@
 from functools import update_wrapper
 from json import loads as json_loads
-from typing import Any, Dict, List, NewType, Union
+from typing import Any, Dict, NewType, Union
 
 from google.auth import default
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError as GoogleApiHttpError
 
-from .exceptions import KintaroServiceInitError
+from kintaro_client.constants import (
+    GOOGLE_AUTH_SCOPES,
+    KINTARO_BACKEND_URL,
+    KINTARO_DISCOVERY_SERVICE_URL,
+    KINTARO_URL,
+)
+from kintaro_client.exceptions import KintaroServiceInitError
 
 
 ServiceError = NewType("ServiceError", Dict)  # error from kintaro
 
 
-def create_kintaro_service():
+def create_kintaro_service(use_backend_url: bool = False):
     """Creates the google service `Resource` object that will handle the
     kintaro api calls.
     """
-    # host = "backend-dot-kintaro-content-server.appspot.com"
-    host = "kintaro-content-server.appspot.com"
-    doc_url = f"https://{host}/_ah/api/discovery/v1/apis/content/v1/rest"
+    document_url: str = KINTARO_DISCOVERY_SERVICE_URL.replace(
+        "[BASE_URL]", KINTARO_BACKEND_URL if use_backend_url else KINTARO_URL
+    )
 
-    scopes: List[str] = [
-        "https://www.googleapis.com/auth/kintaro",
-        "https://www.googleapis.com/auth/userinfo.email",
-    ]
-
-    credentials, project = default(scopes=scopes)
+    credentials, project = default(scopes=GOOGLE_AUTH_SCOPES)
 
     service = build(
         "content",
         "v1",
         credentials=credentials,
-        discoveryServiceUrl=doc_url,
+        discoveryServiceUrl=document_url,
     )
 
     if not service:
@@ -48,7 +49,8 @@ def parse_google_api_error_dict(obj: Any):
         return [parse_google_api_error_dict(obj=entry) for entry in obj]
     elif isinstance(obj, dict):
         return {
-            key: parse_google_api_error_dict(obj=obj[key]) for key in obj.keys()
+            key: parse_google_api_error_dict(obj=obj[key])
+            for key in obj.keys()
         }
     else:
         try:
