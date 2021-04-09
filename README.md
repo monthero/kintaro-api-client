@@ -102,7 +102,7 @@ Keep up with the changes [here](CHANGELOG.md).
 Question, comments and suggestions are all welcome. Please create an issue or email me.
 I'll do my best to reply as soon as possible and to include every suggestion in any way that I can.
 
-- Code should be linted using black, isort and, finally, checked with flake8. Or just use pre-commit with the settings in the project.
+- Code should be linted using [black](https://github.com/psf/black), [isort](https://github.com/PyCQA/isort) and, finally, checked with [flake8](https://github.com/PyCQA/flake8). Or just use pre-commit with the settings in the project.
 - All documentation should be done in [NumPy Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_numpy.html).
 
 ## License
