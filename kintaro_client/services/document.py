@@ -706,7 +706,6 @@ class KintaroDocumentService(KintaroBaseService):
             for request in request_bodies
         )
 
-    # TODO: simplify and devide this method
     def convert_document_content_to_kintaro_format(
         self,
         collection_id: str,
@@ -721,13 +720,11 @@ class KintaroDocumentService(KintaroBaseService):
         """
         Converts the request body to the format that is accepted by kintaro
         """
-        is_update = isinstance(root_md5_info, dict) and isinstance(
+        is_update: bool = isinstance(root_md5_info, dict) and isinstance(
             field_name_structure, dict
         )
 
-        schema_info: Dict[str, KintaroSchemaField] = {
-            field.name: field for field in schema_info
-        }
+        schema_info: Dict = {field.name: field for field in schema_info}
 
         fields = []
         if not content:
@@ -744,89 +741,15 @@ class KintaroDocumentService(KintaroBaseService):
                 field_value = [field_value]
 
             if schema_field_info.type in KintaroFieldType.FILE_FIELDS:
-                for entry in field_value:
-                    if entry is None:
-                        continue
-
-                    field_info = dict(
+                fields.extend(
+                    self.convert_file_field(
                         field_name=field_name,
+                        field_value=field_value,
+                        repo_id=repo_id or self.repo_id,
+                        workspace_id=workspace_id or self.workspace_id,
+                        collection_id=collection_id,
                     )
-
-                    r_path: Optional[str] = None
-                    expected_file_fields: List[str] = [
-                        "mimetype",
-                        "name",
-                        "data",
-                    ]
-
-                    if isinstance(entry, dict):
-                        if len(entry.keys()) == 0:
-                            continue
-
-                        elif any(
-                            field in entry for field in expected_file_fields
-                        ):
-                            res = self.resource_service.create_resource(
-                                repo_id=repo_id or self.repo_id,
-                                workspace_id=workspace_id or self.workspace_id,
-                                collection_id=collection_id,
-                                file_info=entry,
-                            )
-
-                            if isinstance(res, dict) and "errors" in res:
-                                raise KintaroWrongContentFormatError(res)
-
-                            r_path = res.resource_path
-
-                        else:
-                            for possible_field in [
-                                "image_path",
-                                "file_path",
-                                "resource_path",
-                                "path",
-                            ]:
-                                if possible_field in entry:
-                                    r_path = entry.get(possible_field)
-                                    if r_path:
-                                        break
-
-                    else:
-                        r_path = entry
-
-                    if not r_path:
-                        if "url" in entry and entry.get("url"):
-                            res = self.resource_service.create_resource_from_url_or_bytes(  # noqa
-                                repo_id=repo_id or self.repo_id,
-                                workspace_id=(
-                                    workspace_id or self.workspace_id
-                                ),
-                                collection_id=collection_id,
-                                source=entry["url"],
-                            )
-
-                            if isinstance(res, dict) and "errors" in res:
-                                raise KintaroWrongContentFormatError(res)
-
-                            r_path = res.resource_path
-                        else:
-                            raise NoResourcePathFoundError(
-                                "No information available to create resource"
-                            )
-
-                    field_info["nested_field_values"] = [
-                        dict(
-                            fields=[
-                                dict(
-                                    field_name="file_path",
-                                    field_values=[
-                                        dict(type="STRING", value=r_path)
-                                    ],
-                                )
-                            ]
-                        )
-                    ]
-
-                    fields.append(field_info)
+                )
             elif schema_field_info.type == KintaroFieldType.NESTED:
                 nested_fields_info_list = [
                     self.convert_document_content_to_kintaro_format(
@@ -854,142 +777,267 @@ class KintaroDocumentService(KintaroBaseService):
                     )
                 )
             elif schema_field_info.type == KintaroFieldType.REFERENCE:
-                field_entries: List = []
-                to_create_list: List = []
-                to_update_list: List = []
-
-                for entry in field_value:
-                    if entry is None or any(
-                        key not in entry
-                        for key in ["collection_id", "content"]
-                    ):
-                        continue
-
-                    request_body: Dict = dict(
+                fields.append(
+                    self.convert_reference_field(
+                        field_name=field_name,
+                        field_value=field_value,
                         repo_id=repo_id or self.repo_id,
                         workspace_id=workspace_id or self.workspace_id,
-                        collection_id=entry.get("collection_id"),
-                        content={locale: entry.get("content", {})},
-                    )
-
-                    if "document_id" in entry and entry["document_id"]:
-                        to_update_list.append(
-                            dict(
-                                document_id=entry.get("document_id"),
-                                **request_body,
-                            )
-                        )
-                    else:
-                        to_create_list.append(request_body)
-
-                nested_documents: List = []
-                if to_create_list:
-                    nested_documents.extend(
-                        self.multi_document_action(
-                            action="create",
-                            request_bodies=to_create_list,
-                        )
-                    )
-                if to_update_list:
-                    nested_documents.extend(
-                        self.multi_document_action(
-                            action="update",
-                            request_bodies=to_update_list,
-                        )
-                    )
-
-                ref_doc: Union[KintaroDocument, ServiceError]
-                for ref_doc in nested_documents:
-                    if isinstance(ref_doc, dict) and "errors" in ref_doc:
-                        raise KintaroWrongContentFormatError(ref_doc)
-
-                    document_id: Optional[str]
-                    if isinstance(ref_doc, KintaroDocument):
-                        document_id = ref_doc.document_id
-                        collection_id = ref_doc.collection_id
-                    else:
-                        document_id = ref_doc.get("document_id")
-                        collection_id = ref_doc.get("collection_id")
-
-                    if not document_id:
-                        raise AttributeError(
-                            f"Impossible to read property 'document_id' from "
-                            f"type {type(ref_doc)}"
-                        )
-
-                    field_entries.append(
-                        dict(
-                            fields=[
-                                dict(
-                                    field_name="repo_id",
-                                    field_values=[
-                                        dict(
-                                            type="STRING",
-                                            value=repo_id or self.repo_id,
-                                        )
-                                    ],
-                                ),
-                                dict(
-                                    field_name="collection_id",
-                                    field_values=[
-                                        dict(
-                                            type="STRING",
-                                            value=collection_id,
-                                        )
-                                    ],
-                                ),
-                                dict(
-                                    field_name="document_id",
-                                    field_values=[
-                                        dict(type="STRING", value=document_id)
-                                    ],
-                                ),
-                            ]
-                        )
-                    )
-
-                fields.append(
-                    dict(
-                        field_name=field_name,
-                        nested_field_values=field_entries,
+                        locale=locale,
                     )
                 )
             else:
-                field_type = KintaroFieldType.STRING
-                if schema_field_info.type == KintaroFieldType.NUMBER:
-                    field_type = "INT"
-                elif schema_field_info.type == KintaroFieldType.BOOL:
-                    field_type = "BOOL"
-
-                prepared_field_value = []
-                for entry in field_value:
-                    entry = str(entry) if entry is not None else None
-                    field_value = dict(
-                        value=entry,
-                        type=field_type,
-                    )
-                    if is_update:
-                        for key in field_name_structure.keys():
-                            val = (
-                                str(field_name_structure[key])
-                                if field_name_structure[key] is not None
-                                else None
-                            )
-                            if val == entry:
-                                if key in root_md5_info:
-                                    field_value["root_md5"] = root_md5_info[
-                                        key
-                                    ]
-                                break
-                    prepared_field_value.append(field_value)
-
                 fields.append(
-                    dict(
+                    self.convert_basic_field(
+                        schema_field_info=schema_field_info,
                         field_name=field_name,
-                        field_values=prepared_field_value,
+                        field_value=field_value,
+                        field_name_structure=field_name_structure,
+                        root_md5_info=root_md5_info,
+                        is_update=is_update,
                     )
                 )
         return fields
+
+    def convert_file_field(
+        self,
+        collection_id: str,
+        field_name: str,
+        field_value: List,
+        repo_id: Optional[str] = None,
+        workspace_id: Optional[str] = None,
+    ) -> List[Dict]:
+        fields: List[Dict] = []
+
+        for entry in field_value:
+            if not entry:
+                continue
+
+            expected_file_fields: List[str] = ["mimetype", "name", "data"]
+            resource_path = None
+
+            if isinstance(entry, dict):
+                if any(field in entry for field in expected_file_fields):
+                    result = self.resource_service.create_resource(
+                        repo_id=repo_id or self.repo_id,
+                        workspace_id=workspace_id or self.workspace_id,
+                        collection_id=collection_id,
+                        file_info=entry,
+                    )
+
+                    if isinstance(result, dict) and "errors" in result:
+                        raise KintaroWrongContentFormatError(result)
+
+                    resource_path = result.resource_path
+                else:
+                    for alternative_field_name in [
+                        "image_path",
+                        "file_path",
+                        "resource_path",
+                        "path",
+                    ]:
+                        if alternative_field_name in entry:
+                            resource_path = entry.get(alternative_field_name)
+                            if resource_path:
+                                break
+
+            else:
+                resource_path = entry
+
+            if not resource_path:
+                if isinstance(entry, dict) and entry.get("url"):
+                    result = self.resource_service.create_resource_from_url_or_bytes(  # NOQA
+                        repo_id=repo_id or self.repo_id,
+                        workspace_id=(workspace_id or self.workspace_id),
+                        collection_id=collection_id,
+                        source=entry["url"],
+                    )
+
+                    if isinstance(result, dict) and "errors" in result:
+                        raise KintaroWrongContentFormatError(result)
+
+                    resource_path = result.resource_path
+                else:
+                    raise NoResourcePathFoundError(
+                        "No information available to create resource"
+                    )
+
+            fields.append(
+                dict(
+                    field_name=field_name,
+                    nested_field_values=[
+                        dict(
+                            fields=[
+                                dict(
+                                    field_name="file_path",
+                                    field_values=[
+                                        dict(
+                                            type="STRING", value=resource_path
+                                        )
+                                    ],
+                                )
+                            ]
+                        )
+                    ],
+                )
+            )
+        return fields
+
+    def convert_reference_field(
+        self,
+        field_name: str,
+        field_value: List,
+        locale: str = "root",
+        repo_id: Optional[str] = None,
+        workspace_id: Optional[str] = None,
+    ) -> Dict:
+        to_create_list: List = []
+        to_update_list: List = []
+
+        for entry in field_value:
+            if not entry:
+                continue
+
+            if not entry.get("collection_id") or "content" not in entry:
+                continue
+
+            request_body: Dict = dict(
+                repo_id=repo_id or self.repo_id,
+                workspace_id=workspace_id or self.workspace_id,
+                collection_id=entry["collection_id"],
+                content={locale: entry["content"]},
+            )
+
+            if entry.get("document_id"):
+                to_update_list.append(
+                    dict(
+                        document_id=entry["document_id"],
+                        **request_body,
+                    )
+                )
+            else:
+                to_create_list.append(request_body)
+
+        nested_documents: List = []
+        if to_create_list:
+            nested_documents.extend(
+                self.multi_document_action(
+                    action="create",
+                    request_bodies=to_create_list,
+                )
+            )
+        if to_update_list:
+            nested_documents.extend(
+                self.multi_document_action(
+                    action="update",
+                    request_bodies=to_update_list,
+                )
+            )
+
+        referred_document: Union[KintaroDocument, ServiceError]
+        field_entries: List = []
+
+        for referred_document in nested_documents:
+            if (
+                isinstance(referred_document, dict)
+                and "errors" in referred_document
+            ):
+                raise KintaroWrongContentFormatError(referred_document)
+
+            referred_document_id: Optional[str]
+            referred_collection_id: Optional[str]
+
+            if isinstance(referred_document, dict):
+                referred_collection_id = referred_document.get("collection_id")
+                referred_document_id = referred_document.get("document_id")
+            else:
+                referred_collection_id = referred_document.collection_id
+                referred_document_id = referred_document.document_id
+
+            if not referred_document_id:
+                raise AttributeError(
+                    f"Impossible to read property 'document_id' from "
+                    f"type {type(referred_document)}"
+                )
+
+            field_entries.append(
+                dict(
+                    fields=[
+                        dict(
+                            field_name="repo_id",
+                            field_values=[
+                                dict(
+                                    type="STRING",
+                                    value=repo_id or self.repo_id,
+                                )
+                            ],
+                        ),
+                        dict(
+                            field_name="collection_id",
+                            field_values=[
+                                dict(
+                                    type="STRING",
+                                    value=referred_collection_id,
+                                )
+                            ],
+                        ),
+                        dict(
+                            field_name="document_id",
+                            field_values=[
+                                dict(type="STRING", value=referred_document_id)
+                            ],
+                        ),
+                    ]
+                )
+            )
+
+        return dict(
+            field_name=field_name,
+            nested_field_values=field_entries,
+        )
+
+    @staticmethod
+    def convert_basic_field(
+        schema_field_info: KintaroSchemaField,
+        field_name: str,
+        field_value: List,
+        is_update: bool,
+        root_md5_info: Optional[Dict] = None,
+        field_name_structure: Optional[Dict] = None,
+    ) -> Dict:
+        field_type = KintaroFieldType.STRING
+        if schema_field_info.type == KintaroFieldType.NUMBER:
+            field_type = "INT"
+        elif schema_field_info.type == KintaroFieldType.BOOL:
+            field_type = "BOOL"
+
+        prepared_field_value = []
+        for entry in field_value:
+            entry = str(entry) if entry is not None else None
+            field_value = dict(
+                value=entry,
+                type=field_type,
+            )
+            if is_update and isinstance(field_name_structure, dict):
+                for key in field_name_structure.keys():
+                    val = (
+                        str(field_name_structure[key])
+                        if field_name_structure[key] is not None
+                        else None
+                    )
+                    if val == entry:
+                        if (
+                            isinstance(root_md5_info, dict)
+                            and key in root_md5_info
+                        ):
+                            field_value["root_md5"] = root_md5_info.get(key)
+                        break
+            prepared_field_value.append(field_value)
+
+        return dict(
+            field_name=field_name,
+            field_values=prepared_field_value,
+        )
 
     def get_structured_content_values(
         self,
