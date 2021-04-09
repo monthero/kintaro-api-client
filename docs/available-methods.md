@@ -22,7 +22,6 @@ get_repository(
     repo_id: Optional[str] = None
 ) -> Union[ServiceError, KintaroRepository]
 ```
----
 
 ## Workspace Service
 ```python
@@ -62,9 +61,7 @@ update_workspace(
     locales: Optional[List[str]] = None,
     **kwargs
 ) -> Union[ServiceError, KintaroWorkspace]
-``` 
-
----
+```
 
 ## Schema Service
 ```python
@@ -108,8 +105,6 @@ delete_schema(
     repo_id: Optional[str] = None
 ) -> Optional[ServiceError]
 ```
-
----
 
 ## Collection Service
 ```python
@@ -159,8 +154,6 @@ delete_collection(
     repo_id: Optional[str]
 ) -> Optional[ServiceError]
 ```
-
----
 
 ## Document Service
 
@@ -321,8 +314,6 @@ get_structured_content_values(
 ) -> Dict
 ```
 
----
-
 ## Resource Service
 
 ```python
@@ -353,5 +344,3 @@ create_resource_from_url_or_bytes(
     workspace_id: Optional[str] = None
 ) -> Union[ServiceError, KintaroResource]
 ```
-
----
