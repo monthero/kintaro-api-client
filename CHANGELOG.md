@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1] - 2021-04-09
+
+### Added
+- Methods `convert_basic_field`, `convert_reference_field` and `convert_file_field` to `KintaroDocumentService`
+
+### Changed
+- Refactor `convert_document_content_to_kintaro_format` method of `KintaroDocumentService` to make
+  it less complex and easier to read
+
+
 ## [0.1.0] - 2021-04-08
 
 ### Added
@@ -18,4 +28,5 @@ These services can be used individually, if needed.
 
 - Some utility methods to make interacting with the API easier, specially when creating and updating documents.
 
+[0.1.1]: https://github.com/monthero/kintaro-api-client/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/monthero/kintaro-api-client/releases/tag/v0.1.0

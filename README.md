@@ -109,7 +109,7 @@ I'll do my best to reply as soon as possible and to include every suggestion in 
 MIT
 
 [package-name]: https://img.shields.io/badge/Kintaro%20API%20Client-teal.svg
-[curr-version-badge]: https://img.shields.io/badge/version-0.1.0-green.svg
+[curr-version-badge]: https://img.shields.io/badge/version-0.1.1-green.svg
 [python-version-badge]: https://img.shields.io/badge/python-%3E=%203.8-red.svg
 [license]: ./LICENSE
 [license-badge]: https://img.shields.io/badge/license-MIT-blue.svg

@@ -34,7 +34,7 @@ def get_requirements(dev: bool = False) -> List[str]:
     return install_requires
 
 
-VERSION: str = "0.1.0"
+VERSION: str = "0.1.1"
 DESCRIPTION: str = "A python wrapper to work with Google's Kintaro's API"
 GITHUB_URL: str = "https://github.com/monthero/kintaro-api-client"
 
