@@ -1,8 +1,12 @@
 # Kintaro API Client
 [![Package name][package-name]][package-name] [![Current package version][curr-version-badge]][curr-version-badge] [![Supported python versions][python-version-badge]][python-version-badge] [![MIT License Badge][license-badge]][license] [![Code style: black][black-badge]](https://github.com/psf/black)
 
+## Introduction
 A package to programatically work with Google's Kintaro CMS.
 This package offers a set of models, services and utilities to simplify the process of interacting with Kintaro's API through python.
+
+### Disclaimer
+This is not an official or officially approved Google product.
 
 ## Table of Contents
 * [Installation](#installation)
@@ -25,6 +29,8 @@ $ pip install kintaro-api-client
 ## Usage
 This package exposes a set of services, each representing a namespace in the kintaro API.
 As well as a client that has access to all those clients.
+
+NOTE: Add an env variable `KINTARO_URI` with the value to Kintaro's uri.
 
 ### Using a service
 ```python
@@ -71,7 +77,6 @@ collection: KintaroColletion = client.collections.get_collection(
 
 print(f"Your collection has {collection.total_document_count} documents.")
 ```
----
 
 service name | client property | description
 -------------|-----------------|------------

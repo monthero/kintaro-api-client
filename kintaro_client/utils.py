@@ -8,9 +8,9 @@ from googleapiclient.errors import HttpError as GoogleApiHttpError
 
 from kintaro_client.constants import (
     GOOGLE_AUTH_SCOPES,
-    KINTARO_BACKEND_URL,
+    KINTARO_BACKEND_URI,
     KINTARO_DISCOVERY_SERVICE_URL,
-    KINTARO_URL,
+    KINTARO_URI,
 )
 from kintaro_client.exceptions import KintaroServiceInitError
 
@@ -23,7 +23,7 @@ def create_kintaro_service(use_backend_url: bool = False):
     kintaro api calls.
     """
     document_url: str = KINTARO_DISCOVERY_SERVICE_URL.replace(
-        "[BASE_URL]", KINTARO_BACKEND_URL if use_backend_url else KINTARO_URL
+        "[BASE_URL]", KINTARO_BACKEND_URI if use_backend_url else KINTARO_URI
     )
 
     credentials, project = default(scopes=GOOGLE_AUTH_SCOPES)
