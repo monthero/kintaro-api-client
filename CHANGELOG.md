@@ -33,6 +33,6 @@ These services can be used individually, if needed.
 
 - Some utility methods to make interacting with the API easier, specially when creating and updating documents.
 
-[0.1.1]: https://github.com/monthero/kintaro-api-client/compare/v0.1.1...v0.1.2
+[0.1.2]: https://github.com/monthero/kintaro-api-client/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/monthero/kintaro-api-client/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/monthero/kintaro-api-client/releases/tag/v0.1.0
