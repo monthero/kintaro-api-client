@@ -2,6 +2,7 @@ from hashlib import md5
 from multiprocessing import cpu_count
 from typing import Any, Dict, List, Optional, Union
 
+from dry_pyutils import convert_dict_keys_case, convert_string_case
 from googleapiclient.errors import HttpError as GoogleApiHttpError
 from joblib import Parallel, delayed
 
@@ -369,11 +370,20 @@ class KintaroDocumentService(KintaroBaseService):
             "es_ar": "Nuevo título"
         }
         """
-        field_name = (
-            ".".join(field_name.split("--"))
-            if "--" in field_name
-            else field_name
+        field_name = convert_string_case(
+            (
+                ".".join(field_name.split("--"))
+                if "--" in field_name
+                else field_name
+            ),
+            case_style="SNAKE",
         )
+
+        # Convert case of possible nested fields
+        for key in field_values.keys():
+            field_values[key] = convert_dict_keys_case(
+                field_values[key], case_style="SNAKE"
+            )
 
         if "root" in field_values:
             # update root first if it's present because the other locales

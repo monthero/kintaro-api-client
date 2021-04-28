@@ -1,4 +1,3 @@
-from os import environ
 from typing import List
 
 
@@ -29,10 +28,10 @@ class KintaroResourceType:
     RASTER_IMAGE = "RASTER_IMAGE"
     BLOB_FILE = "BLOB_FILE"
 
-    ALL_KNOWN = [RASTER_IMAGE, BLOB_FILE]
+    KNOWN = [RASTER_IMAGE, BLOB_FILE]
 
 
-KINTARO_URI: str = environ["KINTARO_URI"]
+KINTARO_URI: str = "kintaro-content-server.appspot.com"
 KINTARO_BACKEND_URI: str = f"backend-dot-{KINTARO_URI}"
 KINTARO_DISCOVERY_SERVICE_URL: str = (
     "https://[BASE_URL]/_ah/api/discovery/v1/apis/content/v1/rest"

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.3] - 2021-04-20
+### Added
+- Add `DRY-python-utilities` as dependency
+
+### Changed
+- Update dependency `google-api-python-client`
+- Update kintaro host url to `kintaro-content-server.appspot.com`
+- Update `update_document_field` method of the document service to properly convert the case
+of the given field and to accept `Dict` field values
+
+
 ## [0.1.2] - 2021-04-10
 
 ### Changed
@@ -33,6 +44,7 @@ These services can be used individually, if needed.
 
 - Some utility methods to make interacting with the API easier, specially when creating and updating documents.
 
+[0.1.2]: https://github.com/monthero/kintaro-api-client/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/monthero/kintaro-api-client/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/monthero/kintaro-api-client/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/monthero/kintaro-api-client/releases/tag/v0.1.0

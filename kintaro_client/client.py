@@ -77,5 +77,3 @@ class KintaroClient:
                     )
                 ),
             )
-
-        logger.info("-------- Kintaro client created -------")

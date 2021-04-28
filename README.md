@@ -2,7 +2,7 @@
 [![Package name][package-name]][package-name] [![Current package version][curr-version-badge]][curr-version-badge] [![Supported python versions][python-version-badge]][python-version-badge] [![MIT License Badge][license-badge]][license] [![Code style: black][black-badge]](https://github.com/psf/black)
 
 ## Introduction
-A package to programatically work with Google's Kintaro CMS.
+A package that allows working with Google's Kintaro, a private, headless CMS.
 This package offers a set of models, services and utilities to simplify the process of interacting with Kintaro's API through python.
 
 ### Disclaimer
@@ -27,10 +27,8 @@ $ pip install kintaro-api-client
 ```
 
 ## Usage
-This package exposes a set of services, each representing a namespace in the kintaro API.
-As well as a client that has access to all those clients.
-
-NOTE: Add an env variable `KINTARO_URI` with the value to Kintaro's uri.
+This package exposes a set of services, each representing a namespace in the kintaro API,
+as well as a client that has access to all those services.
 
 ### Using a service
 ```python
@@ -85,7 +83,7 @@ service name | client property | description
 `KintaroSchemaService` | `schemas` | Contains the methods for the `schemas` namespace
 `KintaroCollectionService` | `collections` | Contains the methods for the `collections` namespace
 `KintaroDocumentService` | `documents` | Contains the methods for the `documents` namespace
-`KintaroResouceService` | `resources` | Contains the methods for the `resource` namespace
+`KintaroResourceService` | `resources` | Contains the methods for the `resource` namespace
 --------------------------------------------
 You can check the available methods per service [here](./docs/available-methods.md).
 
@@ -114,7 +112,7 @@ I'll do my best to reply as soon as possible and to include every suggestion in 
 MIT
 
 [package-name]: https://img.shields.io/badge/Kintaro%20API%20Client-teal.svg
-[curr-version-badge]: https://img.shields.io/badge/version-0.1.2-green.svg
+[curr-version-badge]: https://img.shields.io/badge/version-0.1.3-green.svg
 [python-version-badge]: https://img.shields.io/badge/python-%3E=%203.8-red.svg
 [license]: ./LICENSE
 [license-badge]: https://img.shields.io/badge/license-MIT-blue.svg

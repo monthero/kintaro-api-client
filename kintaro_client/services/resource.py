@@ -37,7 +37,7 @@ class KintaroResourceService(KintaroBaseService):
         ValueError
             If resource type is neither **RASTER_IMAGE** nor **BLOB_FILE**
         """
-        if resource_type not in KintaroResourceType.ALL_KNOWN:
+        if resource_type not in KintaroResourceType.KNOWN:
             raise ValueError(f"Invalid resource type {resource_type}")
 
         return KintaroResource(
