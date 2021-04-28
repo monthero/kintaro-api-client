@@ -74,6 +74,5 @@ setup(
         "Programming Language :: Python :: 3 :: Only",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
         "Topic :: Software Development :: Libraries :: Python Modules",
-        "Topic :: Software Development :: API Wrappers",
     ],
 )
